@@ -2,19 +2,13 @@ name: Hyperframes Render
 
 on:
   workflow_dispatch:
-    inputs:
-      project:
-        description: 'Project folder name (e.g. pikachu)'
-        required: true
-        default: 'pikachu'
-      output_file:
-        description: 'Output filename (e.g. pikachu_final.mp4)'
-        required: true
-        default: 'pikachu_final.mp4'
 
 jobs:
   render:
     runs-on: ubuntu-22.04
+    env:
+      PROJECT: pikachu
+      OUTPUT: pikachu_final.mp4
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,23 +32,15 @@ jobs:
             libcairo2 libnss3 libnspr4 2>&1 | tail -3
 
       - name: Run Hyperframes render
-        env:
-          PROJECT: ${{ inputs.project }}
-          OUTPUT: ${{ inputs.output_file }}
         run: |
           echo "Rendering: $PROJECT -> $OUTPUT"
-          hyperframes render \
-            --workers 1 \
-            --fps 30 \
-            --quality high \
-            "$PROJECT" \
-            -o "$OUTPUT"
+          hyperframes render --workers 1 --fps 30 --quality high pikachu -o pikachu_final.mp4
           echo "Render complete. File size:"
-          ls -lh "$OUTPUT"
+          ls -lh pikachu_final.mp4
 
       - name: Upload render output
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.output_file }}
-          path: ${{ inputs.output_file }}
+          name: pikachu_final.mp4
+          path: pikachu_final.mp4
           retention-days: 7
