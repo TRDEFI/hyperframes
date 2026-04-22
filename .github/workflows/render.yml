@@ -9,6 +9,7 @@ jobs:
     env:
       PROJECT: pikachu
       OUTPUT: pikachu_final.mp4
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,16 +17,18 @@ jobs:
       - name: Install Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
 
       - name: Install Hyperframes + FFmpeg
         run: |
-          npm install -g hyperframes
-          apt-get update && apt-get install -y ffmpeg
+          npm install -g hyperframes --prefer-offline --no-audit --no-fund 2>&1 | tail -10
+          apt-get update -qq && apt-get install -y -qq ffmpeg > /dev/null 2>&1
+          echo "Hyperframes installed:"
+          hyperframes --version
 
       - name: Install Chrome browser libs
         run: |
-          apt-get install -y \
+          apt-get install -y -qq \
             libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
             libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 \
             libxrandr2 libgbm1 libasound2 libpango-1.0-0 \
@@ -35,7 +38,6 @@ jobs:
         run: |
           echo "Rendering: $PROJECT -> $OUTPUT"
           hyperframes render --workers 1 --fps 30 --quality high pikachu -o pikachu_final.mp4
-          echo "Render complete. File size:"
           ls -lh pikachu_final.mp4
 
       - name: Upload render output
