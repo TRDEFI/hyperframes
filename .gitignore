@@ -1,0 +1,45 @@
+# ==========================================
+# hyperframes source repo — .gitignore
+# Keep SOURCE only, skip re-generatable + large files
+# ==========================================
+
+# ─── Render Output (re-generatable) ───
+renders/
+output.mp4
+
+# ─── Extracted Frames (huge, re-generatable) ───
+frames/
+frames27s/
+frames_paris/
+reference_frames/
+
+# ─── Audio (re-generatable) ───
+audio/
+*.mp3
+*.wav
+
+# ─── Hyperframes cache / temp ───
+.hyperframes/
+snapshots/
+node_modules/
+*.log
+
+# ─── Large media assets (keep only small refs) ───
+product_photos/
+
+# ─── Local workspace notes (not needed in source) ───
+*.ps1
+*.pyc
+__pycache__/
+
+# ─── Colab outputs (re-download from Colab) ───
+*.mp4
+*.webm
+*.mov
+
+# ─── OS junk ───
+.DS_Store
+Thumbs.db
+
+# ─── Local sessions (private) ───
+*.jsonl

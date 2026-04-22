@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Detective Pikachu — The Case</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #000; overflow: hidden; }
+.composition {
+  width: 1080px; height: 1920px;
+  position: relative; overflow: hidden;
+  font-family: 'Georgia', serif;
+  background: #050510;
+}
+.grain {
+  position: fixed; top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 999;
+  animation: grainShift 0.3s steps(1) infinite;
+}
+@keyframes grainShift {
+  0% { transform: translate(0,0); }
+  20% { transform: translate(-2%,-1%); }
+  40% { transform: translate(1%,2%); }
+  60% { transform: translate(-1%,2%); }
+  80% { transform: translate(2%,-1%); }
+  100% { transform: translate(0,0); }
+}
+.vignette {
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.85) 100%);
+  pointer-events: none; z-index: 998;
+}
+.particles { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
+.particle {
+  position: absolute; width: 3px; height: 3px;
+  border-radius: 50%; background: rgba(255,220,100,0.5);
+  animation: floatParticle linear infinite;
+}
+@keyframes floatParticle {
+  0% { transform: translateY(1920px) translateX(0); opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.6; }
+  100% { transform: translateY(-100px) translateX(30px) rotate(360deg); opacity: 0; }
+}
+.scene { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+.scene.active { opacity: 1; pointer-events: all; }
+
+/* ===== S1 — DISCOVERY ===== */
+#scene1 {
+  background: linear-gradient(180deg, #050510 0%, #0a0a20 50%, #0d0818 100%);
+}
+.room-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 70%, rgba(30,20,60,0.9) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 30%, rgba(20,15,40,0.8) 0%, transparent 50%);
+}
+.lamp-glow {
+  position: absolute;
+  width: 400px; height: 400px;
+  left: 50%; top: 60%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse, rgba(255,180,60,0.06) 0%, transparent 70%);
+  animation: lampPulse 4s sine.inOut infinite;
+}
+@keyframes lampPulse {
+  0%,100% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+}
+.question-mark {
+  position: absolute;
+  left: 50%; top: 42%;
+  transform: translateX(-50%);
+  font-size: 220px; font-weight: 900;
+  color: rgba(255,200,80,0.08);
+  letter-spacing: -0.05em;
+  animation: questionFloat 3s sine.inOut infinite;
+}
+@keyframes questionFloat {
+  0%,100% { transform: translateX(-50%) translateY(0) rotate(-2deg); opacity: 0.7; }
+  50% { transform: translateX(-50%) translateY(-15px) rotate(2deg); opacity: 1; }
+}
+.magnifier {
+  position: absolute;
+  left: 50%; top: 35%;
+  transform: translateX(-50%);
+  width: 120px; height: 120px;
+  animation: magnifyFloat 3.5s sine.inOut infinite;
+}
+@keyframes magnifyFloat {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.5) rotate(-10deg); }
+  20% { opacity: 0.9; }
+  80% { opacity: 0.7; }
+  100% { opacity: 0; transform: translateX(-50%) scale(1.3) rotate(10deg); }
+}
+.searching-hand {
+  position: absolute;
+  bottom: 38%; left: 35%;
+  width: 200px; height: 80px;
+  animation: handSearch 2.5s power2.inOut infinite;
+}
+@keyframes handSearch {
+  0% { opacity: 0; transform: translateX(-80px); }
+  20% { opacity: 0.7; }
+  50% { transform: translateX(20px); }
+  80% { opacity: 0.7; }
+  100% { opacity: 0; transform: translateX(-80px); }
+}
+.caption-bar {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 28%;
+  background: linear-gradient(transparent, rgba(0,0,15,0.95) 40%);
+  display: flex; align-items: center; justify-content: center;
+}
+.caption-inner {
+  border: 1px solid rgba(255,200,80,0.3);
+  padding: 18px 50px;
+  text-align: center;
+  background: rgba(10,8,20,0.8);
+  position: relative;
+}
+.caption-inner::before, .caption-inner::after {
+  content: ''; position: absolute;
+  width: 20px; height: 20px;
+  border-color: rgba(255,200,80,0.5); border-style: solid;
+}
+.caption-inner::before { top: -2px; left: -2px; border-width: 2px 0 0 2px; }
+.caption-inner::after { bottom: -2px; right: -2px; border-width: 0 2px 2px 0; }
+.caption-label {
+  font-size: 16px; letter-spacing: 0.3em;
+  color: rgba(255,200,80,0.6); text-transform: uppercase; margin-bottom: 8px;
+}
+.caption-text { font-size: 36px; color: #fff; letter-spacing: 0.02em; }
+.yellow-flash {
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at 50% 60%, rgba(255,220,60,0.95) 0%, rgba(255,200,80,0.6) 30%, transparent 70%);
+  opacity: 0; z-index: 100; pointer-events: none;
+}
+.yellow-flash.flash-anim { animation: flashBurst 0.8s power4.out forwards; }
+@keyframes flashBurst {
+  0% { opacity: 0; transform: scale(0.3); }
+  15% { opacity: 1; transform: scale(1); }
+  40% { opacity: 0.8; transform: scale(1.05); }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+.pikachu-reveal {
+  position: absolute;
+  left: 50%; top: 25%;
+  transform: translateX(-50%);
+  width: 650px; height: 650px;
+  opacity: 0;
+  clip-path: circle(0% at 50% 50%);
+}
+.pikachu-reveal.reveal-anim { animation: pikachuReveal 1.2s expo.out 0.1s forwards; }
+@keyframes pikachuReveal {
+  0% { opacity: 0; clip-path: circle(0% at 50% 50%); }
+  50% { opacity: 1; clip-path: circle(50% at 50% 50%); }
+  100% { opacity: 1; clip-path: circle(75% at 50% 50%); }
+}
+.pikachu-reveal img {
+  width: 100%; height: 100%; object-fit: contain;
+  filter: drop-shadow(0 0 60px rgba(255,210,0,0.4)) drop-shadow(0 0 120px rgba(255,180,0,0.2));
+}
+.brand-stamp {
+  position: absolute; top: 8%; right: 6%;
+  padding: 8px 18px;
+  border: 2px solid rgba(255,200,80,0.6);
+  font-size: 14px; letter-spacing: 0.3em;
+  color: rgba(255,200,80,0.8); text-transform: uppercase; opacity: 0;
+}
+.brand-stamp.stamp-anim { animation: stampIn 0.4s power4.out 1.8s forwards; }
+@keyframes stampIn {
+  0% { opacity: 0; transform: scale(2) rotate(-10deg); }
+  70% { transform: scale(0.95) rotate(2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+/* ===== S2 — EVIDENCE ===== */
+#scene2 { background: linear-gradient(180deg, #050510 0%, #0a0a20 100%); }
+.evidence-header { position: absolute; top: 5%; left: 50%; transform: translateX(-50%); text-align: center; }
+.evidence-label { font-size: 18px; letter-spacing: 0.4em; color: rgba(220,50,50,0.9); text-transform: uppercase; margin-bottom: 6px; }
+.evidence-title { font-size: 52px; font-weight: 900; color: #fff; letter-spacing: -0.02em; text-shadow: 0 0 40px rgba(255,200,80,0.3); }
+.evidence-subtitle { font-size: 22px; color: rgba(255,200,80,0.7); letter-spacing: 0.15em; margin-top: 8px; font-style: italic; }
+.evidence-card {
+  position: absolute;
+  border: 1px solid rgba(255,200,80,0.25);
+  background: rgba(8,6,18,0.9);
+  opacity: 0; transform: scale(0.85) translateY(30px);
+  overflow: hidden;
+}
+.evidence-card.card-anim { animation: cardIn 0.6s expo.out forwards; }
+@keyframes cardIn {
+  0% { opacity: 0; transform: scale(0.85) translateY(30px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.card-num { position: absolute; top: 10px; left: 12px; font-size: 11px; letter-spacing: 0.3em; color: rgba(220,50,50,0.9); text-transform: uppercase; }
+.card-tag { position: absolute; top: 10px; right: 10px; background: rgba(220,50,50,0.15); border: 1px solid rgba(220,50,50,0.4); padding: 3px 10px; font-size: 10px; letter-spacing: 0.2em; color: rgba(220,80,80,0.95); text-transform: uppercase; }
+.card-img { width: 100%; height: 68%; object-fit: contain; mix-blend-mode: lighten; }
+.card-label { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(5,4,15,0.98) 30%); padding: 15px 12px 10px; font-size: 13px; letter-spacing: 0.1em; color: rgba(255,200,80,0.9); text-transform: uppercase; }
+#ec1 { width: 420px; height: 500px; left: 8%; top: 22%; }
+#ec2 { width: 380px; height: 450px; right: 8%; top: 18%; }
+#ec3 { width: 380px; height: 450px; left: 8%; top: 50%; }
+#ec4 { width: 420px; height: 500px; right: 8%; top: 48%; }
+#ec1.card-anim { animation-delay: 0.5s; }
+#ec2.card-anim { animation-delay: 0.85s; }
+#ec3.card-anim { animation-delay: 1.2s; }
+#ec4.card-anim { animation-delay: 1.55s; }
+.sparkle {
+  position: absolute; width: 8px; height: 8px; background: #FFD700;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  animation: sparkleAnim 2s sine.inOut infinite;
+  pointer-events: none; z-index: 20;
+}
+@keyframes sparkleAnim {
+  0%,100% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.4) rotate(20deg); }
+}
+.progress-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: rgba(255,255,255,0.05); }
+.progress-fill { height: 100%; background: linear-gradient(90deg, rgba(255,200,80,0.6), rgba(255,200,80,0.9)); width: 0%; }
+
+/* ===== S3 — VERDICT ===== */
+#scene3 { background: radial-gradient(ellipse at 50% 40%, #1a1208 0%, #050510 70%); }
+.ambient-glow {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(255,200,60,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse at 30% 80%, rgba(255,150,40,0.05) 0%, transparent 40%),
+    radial-gradient(ellipse at 70% 20%, rgba(100,80,200,0.05) 0%, transparent 40%);
+  animation: ambientPulse 5s sine.inOut infinite;
+}
+@keyframes ambientPulse { 0%,100% { opacity: 0.8; } 50% { opacity: 1; } }
+.center-product { position: absolute; left: 50%; top: 18%; transform: translateX(-50%); width: 580px; height: 580px; opacity: 0; }
+.center-product.prod-anim { animation: prodReveal 1s expo.out forwards; }
+@keyframes prodReveal { 0% { opacity: 0; transform: translateX(-50%) scale(0.7); } 100% { opacity: 1; transform: translateX(-50%) scale(1); } }
+.center-product img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 80px rgba(255,200,0,0.35)); }
+.heartfelt { position: absolute; left: 50%; bottom: 18%; transform: translateX(-50%); text-align: center; width: 90%; opacity: 0; }
+.heartfelt.heart-anim { animation: heartIn 0.8s expo.out 0.5s forwards; }
+@keyframes heartIn { 0% { opacity: 0; transform: translateX(-50%) translateY(30px); } 100% { opacity: 1; transform: translateX(-50%) translateY(0); } }
+.heartfelt .main-text { font-size: 44px; color: #fff; line-height: 1.3; text-shadow: 0 0 40px rgba(255,200,80,0.3); letter-spacing: 0.02em; }
+.heartfelt .sub-text { font-size: 20px; color: rgba(255,200,80,0.7); margin-top: 12px; letter-spacing: 0.15em; }
+.star-deco { position: absolute; animation: starFloat 3s sine.inOut infinite; }
+@keyframes starFloat { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(10deg); } }
+
+/* ===== S4 — CTA ===== */
+#scene4 { background: linear-gradient(180deg, #050510 0%, #0d0820 50%, #050510 100%); }
+.cta-product { position: absolute; left: 50%; top: 8%; transform: translateX(-50%); width: 500px; height: 500px; opacity: 0; }
+.cta-product.cta-anim { animation: ctaProdIn 0.8s expo.out forwards; }
+@keyframes ctaProdIn { 0% { opacity: 0; transform: translateX(-50%) scale(0.8); } 100% { opacity: 1; transform: translateX(-50%) scale(1); } }
+.cta-product img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 60px rgba(255,200,0,0.3)); }
+.cta-main { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; width: 90%; opacity: 0; }
+.cta-main.cta-text-anim { animation: ctaTextIn 0.8s expo.out 0.4s forwards; }
+@keyframes ctaTextIn { 0% { opacity: 0; transform: translate(-50%, -40%); } 100% { opacity: 1; transform: translate(-50%, -50%); } }
+.cta-title { font-size: 80px; font-weight: 900; color: #fff; letter-spacing: -0.03em; line-height: 0.9; text-shadow: 0 0 60px rgba(255,200,80,0.4), 0 0 120px rgba(255,180,0,0.2); }
+.cta-sub { font-size: 28px; color: rgba(255,200,80,0.8); margin-top: 16px; letter-spacing: 0.2em; }
+.cta-tagline { font-size: 20px; color: rgba(255,255,255,0.5); margin-top: 10px; letter-spacing: 0.1em; font-style: italic; }
+.price-badge { position: absolute; left: 50%; bottom: 22%; transform: translateX(-50%); text-align: center; opacity: 0; }
+.price-badge.price-anim { animation: priceIn 0.6s expo.out 0.9s forwards; }
+@keyframes priceIn { 0% { opacity: 0; transform: translateX(-50%) scale(0.7); } 70% { transform: translateX(-50%) scale(1.05); } 100% { opacity: 1; transform: translateX(-50%) scale(1); } }
+.price-label { font-size: 14px; color: rgba(255,200,80,0.6); letter-spacing: 0.4em; text-transform: uppercase; margin-bottom: 6px; }
+.price-value { font-size: 72px; font-weight: 900; color: #FFD700; text-shadow: 0 0 40px rgba(255,215,0,0.5); letter-spacing: -0.02em; }
+.price-badge .shop-link { display: block; font-size: 22px; color: rgba(255,200,80,0.8); margin-top: 8px; letter-spacing: 0.2em; }
+.final-stamp { position: absolute; top: 6%; right: 6%; padding: 12px 24px; border: 2px solid rgba(255,200,80,0.5); font-size: 13px; letter-spacing: 0.3em; color: rgba(255,200,80,0.8); text-transform: uppercase; opacity: 0; }
+.final-stamp.stamp-final-anim { animation: stampIn 0.5s power4.out 1.2s forwards; }
+.closing-glow { position: fixed; inset: 0; background: radial-gradient(ellipse at 50% 70%, rgba(255,160,40,0.12) 0%, transparent 60%); pointer-events: none; z-index: 5; opacity: 0; }
+.closing-glow.glow-anim { animation: glowFade 2s ease-in-out 1.5s forwards; }
+@keyframes glowFade { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+</style>
+</head>
+<body>
+
+<div class="composition" id="comp" data-composition-id="detective-pikachu" data-width="1080" data-height="1920" data-start="0" data-duration="23">
+  <div class="grain"></div>
+  <div class="vignette"></div>
+  <div class="particles" id="particles"></div>
+  <div class="yellow-flash" id="yellowFlash"></div>
+  <div class="closing-glow" id="closingGlow"></div>
+
+  <!-- SCENE 1 — THE DISCOVERY -->
+  <div class="scene active" id="scene1">
+    <div class="room-bg"></div>
+    <div class="lamp-glow"></div>
+    <div class="question-mark">?</div>
+    <div class="magnifier">
+      <svg viewBox="0 0 100 100" fill="none">
+        <circle cx="40" cy="40" r="28" stroke="rgba(255,200,80,0.6)" stroke-width="3"/>
+        <line x1="60" y1="60" x2="90" y2="90" stroke="rgba(255,200,80,0.6)" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="40" cy="40" r="20" fill="rgba(255,200,80,0.05)"/>
+      </svg>
+    </div>
+    <div class="searching-hand">
+      <svg viewBox="0 0 200 80" fill="none">
+        <ellipse cx="100" cy="40" rx="80" ry="30" fill="rgba(200,160,100,0.3)"/>
+      </svg>
+    </div>
+    <div class="pikachu-reveal" id="pikachuReveal">
+      <img src="main_images/1.jpeg" alt="Detective Pikachu">
+    </div>
+    <div class="brand-stamp" id="brandStamp">Detective Pikachu</div>
+    <div class="caption-bar">
+      <div class="caption-inner">
+        <div class="caption-label">Detective's Log</div>
+        <div class="caption-text">"Ne olabilir?"</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENE 2 — THE EVIDENCE -->
+  <div class="scene" id="scene2">
+    <div class="evidence-header">
+      <div class="evidence-label">Dosya #001 — Kanitlar</div>
+      <div class="evidence-title">THE EVIDENCE</div>
+      <div class="evidence-subtitle">Her detay bir ipucu</div>
+    </div>
+    <div class="evidence-card" id="ec1">
+      <div class="card-num">KANIT #01</div>
+      <div class="card-tag">Film Accuracy</div>
+      <img class="card-img" src="main_images/3.jpeg" alt="Fur">
+      <div class="card-label">Uzun tuylu shaggy kumas — filmdeki gibi gercekci doku</div>
+    </div>
+    <div class="evidence-card" id="ec2">
+      <div class="card-num">KANIT #02</div>
+      <div class="card-tag">Authentic</div>
+      <img class="card-img" src="main_images/1.jpeg" alt="Hat">
+      <div class="card-label">Otantik deerstalker sapka — Sherlock Holmes tarzi</div>
+    </div>
+    <div class="evidence-card" id="ec3">
+      <div class="card-num">KANIT #03</div>
+      <div class="card-tag">Expression</div>
+      <img class="card-img" src="main_images/5.jpeg" alt="Eyes">
+      <div class="card-label">Ruhlu ifadeli gozlerr — film'den canli bakis</div>
+    </div>
+    <div class="evidence-card" id="ec4">
+      <div class="card-num">KANIT #04</div>
+      <div class="card-tag">Collectible</div>
+      <img class="card-img" src="main_images/4.jpeg" alt="Full">
+      <div class="card-label">Film'deki tasarim — orijinal lisansli</div>
+    </div>
+    <div class="sparkle" style="left:15%;top:35%;animation-delay:0s;width:12px;height:12px;"></div>
+    <div class="sparkle" style="right:18%;top:42%;animation-delay:0.7s;width:6px;height:6px;"></div>
+    <div class="sparkle" style="left:22%;top:65%;animation-delay:1.4s;width:10px;height:10px;"></div>
+    <div class="sparkle" style="right:12%;top:70%;animation-delay:0.3s;width:8px;height:8px;"></div>
+    <div class="sparkle" style="left:50%;top:20%;animation-delay:2s;width:5px;height:5px;"></div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <!-- SCENE 3 — THE VERDICT -->
+  <div class="scene" id="scene3">
+    <div class="ambient-glow"></div>
+    <div class="star-deco" style="left:8%;top:25%;">
+      <svg width="30" height="30" viewBox="0 0 30 30"><polygon points="15,0 18,11 30,11 21,18 24,30 15,22 6,30 9,18 0,11 12,11" fill="rgba(255,215,0,0.7)"/></svg>
+    </div>
+    <div class="star-deco" style="right:10%;top:35%;animation-delay:1s;">
+      <svg width="20" height="20" viewBox="0 0 30 30"><polygon points="15,0 18,11 30,11 21,18 24,30 15,22 6,30 9,18 0,11 12,11" fill="rgba(255,200,80,0.5)"/></svg>
+    </div>
+    <div class="star-deco" style="left:15%;top:60%;animation-delay:0.5s;">
+      <svg width="16" height="16" viewBox="0 0 30 30"><polygon points="15,0 18,11 30,11 21,18 24,30 15,22 6,30 9,18 0,11 12,11" fill="rgba(255,215,0,0.4)"/></svg>
+    </div>
+    <div class="star-deco" style="right:20%;top:65%;animation-delay:1.5s;">
+      <svg width="24" height="24" viewBox="0 0 30 30"><polygon points="15,0 18,11 30,11 21,18 24,30 15,22 6,30 9,18 0,11 12,11" fill="rgba(255,200,80,0.6)"/></svg>
+    </div>
+    <div class="center-product" id="centerProduct">
+      <img src="main_images/2.jpeg" alt="Detective Pikachu">
+    </div>
+    <div class="heartfelt" id="heartfelt">
+      <div class="main-text">Her macera bir arkadasla baslar</div>
+      <div class="sub-text">Resmi Lisansli — Detective Pikachu Film Versiyonu</div>
+    </div>
+  </div>
+
+  <!-- SCENE 4 — THE CTA -->
+  <div class="scene" id="scene4">
+    <div class="cta-product" id="ctaProduct">
+      <img src="main_images/6.jpeg" alt="Detective Pikachu">
+    </div>
+    <div class="cta-main" id="ctaMain">
+      <div class="cta-title">DETECTIVE<br>POKEMON</div>
+      <div class="cta-sub">trdefi.com</div>
+      <div class="cta-tagline">Her macera bir arkadasla baslar</div>
+    </div>
+    <div class="price-badge" id="priceBadge">
+      <div class="price-label">Sadece</div>
+      <div class="price-value">26.78 GBP</div>
+      <div class="shop-link">trdefi.com</div>
+    </div>
+    <div class="final-stamp" id="finalStamp">Detective Pikachu</div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // Expose window.__hf for screenshot capture mode (REQUIRED by hyperframes)
+  window.__hf = {
+    duration: 23,
+    seek: function(time) {
+      // Seeking is handled by re-rendering at specific frames
+      // For now, just return the requested time
+      return time;
+    }
+  };
+
+  // Seeded PRNG (mulberry32) — deterministic across renders
+  function mulberry32(seed) {
+    return function() {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  var random = mulberry32(42);
+
+  // Generate floating particles (deterministic)
+  var particlesEl = document.getElementById('particles');
+  for (var i = 0; i < 25; i++) {
+    var p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = (random() * 100) + '%';
+    p.style.animationDuration = (6 + random() * 8) + 's';
+    p.style.animationDelay = (random() * 8) + 's';
+    var size = 2 + random() * 3;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    particlesEl.appendChild(p);
+  }
+
+  // Wait for GSAP to be ready, then drive the timeline
+  var comp = document.getElementById('comp');
+  var scene1 = document.getElementById('scene1');
+  var scene2 = document.getElementById('scene2');
+  var scene3 = document.getElementById('scene3');
+  var scene4 = document.getElementById('scene4');
+
+  var s1Duration = 5;    // seconds
+  var s2Duration = 7;
+  var s3Duration = 5;
+  var s4Duration = 6;
+  var totalDuration = s1Duration + s2Duration + s3Duration + s4Duration; // 23s
+
+  var startTime = null;
+  var progressFill = document.getElementById('progressFill');
+
+  var s2ProgressStart = s1Duration;
+  var s2ProgressEnd = s1Duration + s2Duration;
+
+  function getElapsed() {
+    if (!startTime) return 0;
+    // Use performance.now() for higher precision
+    return (performance.now() - startTime) / 1000;
+  }
+
+  function tick() {
+    var elapsed = getElapsed();
+    var progress = Math.min(elapsed / totalDuration, 1);
+
+    // Progress bar
+    if (elapsed >= s1Duration && elapsed <= s2ProgressEnd) {
+      var s2p = (elapsed - s1Duration) / s2Duration;
+      progressFill.style.width = (s2p * 100) + '%';
+    }
+
+    // Scene 1: Trigger at specific times (in seconds)
+    if (elapsed > 0.5) {
+      document.getElementById('pikachuReveal').classList.add('reveal-anim');
+    }
+    if (elapsed > 2.0) {
+      document.getElementById('yellowFlash').classList.add('flash-anim');
+    }
+    if (elapsed > 3.0) {
+      document.getElementById('brandStamp').classList.add('stamp-anim');
+    }
+
+    // Scene 1 → 2 transition
+    if (elapsed >= s1Duration && elapsed < s1Duration + 0.1) {
+      scene1.classList.remove('active');
+      scene2.classList.add('active');
+      setTimeout(function() {
+        document.getElementById('ec1').classList.add('card-anim');
+        document.getElementById('ec2').classList.add('card-anim');
+        document.getElementById('ec3').classList.add('card-anim');
+        document.getElementById('ec4').classList.add('card-anim');
+      }, 50);
+    }
+
+    // Scene 2 → 3 transition
+    if (elapsed >= s1Duration + s2Duration && elapsed < s1Duration + s2Duration + 0.1) {
+      scene2.classList.remove('active');
+      scene3.classList.add('active');
+      progressFill.style.width = '0%';
+      setTimeout(function() {
+        document.getElementById('centerProduct').classList.add('prod-anim');
+        document.getElementById('heartfelt').classList.add('heart-anim');
+      }, 50);
+    }
+
+    // Scene 3 → 4 transition
+    if (elapsed >= s1Duration + s2Duration + s3Duration && elapsed < s1Duration + s2Duration + s3Duration + 0.1) {
+      scene3.classList.remove('active');
+      scene4.classList.add('active');
+      document.getElementById('closingGlow').classList.add('glow-anim');
+      setTimeout(function() {
+        document.getElementById('ctaProduct').classList.add('cta-anim');
+        document.getElementById('ctaMain').classList.add('cta-text-anim');
+        document.getElementById('priceBadge').classList.add('price-anim');
+        document.getElementById('finalStamp').classList.add('stamp-final-anim');
+      }, 50);
+    }
+
+    if (elapsed < totalDuration) {
+      requestAnimationFrame(tick);
+    } else {
+      // Loop — reset everything
+      scene4.classList.remove('active');
+      scene1.classList.add('active');
+      document.getElementById('pikachuReveal').classList.remove('reveal-anim');
+      document.getElementById('yellowFlash').classList.remove('flash-anim');
+      document.getElementById('brandStamp').classList.remove('stamp-anim');
+      document.getElementById('ec1').classList.remove('card-anim');
+      document.getElementById('ec2').classList.remove('card-anim');
+      document.getElementById('ec3').classList.remove('card-anim');
+      document.getElementById('ec4').classList.remove('card-anim');
+      document.getElementById('centerProduct').classList.remove('prod-anim');
+      document.getElementById('heartfelt').classList.remove('heart-anim');
+      document.getElementById('ctaProduct').classList.remove('cta-anim');
+      document.getElementById('ctaMain').classList.remove('cta-text-anim');
+      document.getElementById('priceBadge').classList.remove('price-anim');
+      document.getElementById('finalStamp').classList.remove('stamp-final-anim');
+      document.getElementById('closingGlow').classList.remove('glow-anim');
+      progressFill.style.width = '0%';
+      startTime = performance.now();
+      tick();
+    }
+  }
+
+  // Start when page is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      startTime = performance.now();
+      tick();
+    });
+  } else {
+    startTime = performance.now();
+    tick();
+  }
+})();
+</script>
+</body>
+</html>

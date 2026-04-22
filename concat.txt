@@ -1,0 +1,7 @@
+file 'C:/Users/cemya/test-video/audio/final_hook.mp3'
+file 'C:/Users/cemya/test-video/audio/final_product.mp3'
+file 'C:/Users/cemya/test-video/audio/final_price.mp3'
+file 'C:/Users/cemya/test-video/audio/final_benefits.mp3'
+file 'C:/Users/cemya/test-video/audio/final_review1.mp3'
+file 'C:/Users/cemya/test-video/audio/final_review2.mp3'
+file 'C:/Users/cemya/test-video/audio/final_cta.mp3'
