@@ -42,7 +42,7 @@ jobs:
           PROJECT: ${{ inputs.project }}
           OUTPUT: ${{ inputs.output_file }}
         run: |
-          echo "Rendering: $PROJECT → $OUTPUT"
+          echo "Rendering: $PROJECT -> $OUTPUT"
           hyperframes render \
             --workers 1 \
             --fps 30 \
@@ -58,33 +58,3 @@ jobs:
           name: ${{ inputs.output_file }}
           path: ${{ inputs.output_file }}
           retention-days: 7
-
-      - name: Download artifact
-        run: |
-          # Download artifact using GitHub Actions API
-          RUN_ID=${{ github.run_id }}
-          ARTIFACT_NAME="${{ inputs.output_file }}"
-          
-          ARTIFACT_URL=$(curl -s -L \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts" \
-            | python3 -c "
-import sys, json
-artifacts = json.load(sys.stdin)['artifacts']
-for a in artifacts:
-    if a['name'] == '$ARTIFACT_NAME':
-        print(a['archive_download_url'])
-        break
-")
-          
-          echo "Artifact download URL: $ARTIFACT_URL"
-          
-          curl -s -L \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            -o "${{ inputs.output_file }}" \
-            "$ARTIFACT_URL"
-          
-          echo "Downloaded file:"
-          ls -lh "${{ inputs.output_file }}"
