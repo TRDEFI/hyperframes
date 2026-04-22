@@ -1,0 +1,90 @@
+name: Hyperframes Render
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: 'Project folder name (e.g. pikachu)'
+        required: true
+        default: 'pikachu'
+      output_file:
+        description: 'Output filename (e.g. pikachu_final.mp4)'
+        required: true
+        default: 'pikachu_final.mp4'
+
+jobs:
+  render:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Hyperframes + FFmpeg
+        run: |
+          npm install -g hyperframes
+          apt-get update && apt-get install -y ffmpeg
+
+      - name: Install Chrome browser libs
+        run: |
+          apt-get install -y \
+            libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
+            libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 \
+            libxrandr2 libgbm1 libasound2 libpango-1.0-0 \
+            libcairo2 libnss3 libnspr4 2>&1 | tail -3
+
+      - name: Run Hyperframes render
+        env:
+          PROJECT: ${{ inputs.project }}
+          OUTPUT: ${{ inputs.output_file }}
+        run: |
+          echo "Rendering: $PROJECT → $OUTPUT"
+          hyperframes render \
+            --workers 1 \
+            --fps 30 \
+            --quality high \
+            "$PROJECT" \
+            -o "$OUTPUT"
+          echo "Render complete. File size:"
+          ls -lh "$OUTPUT"
+
+      - name: Upload render output
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.output_file }}
+          path: ${{ inputs.output_file }}
+          retention-days: 7
+
+      - name: Download artifact
+        run: |
+          # Download artifact using GitHub Actions API
+          RUN_ID=${{ github.run_id }}
+          ARTIFACT_NAME="${{ inputs.output_file }}"
+          
+          ARTIFACT_URL=$(curl -s -L \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts" \
+            | python3 -c "
+import sys, json
+artifacts = json.load(sys.stdin)['artifacts']
+for a in artifacts:
+    if a['name'] == '$ARTIFACT_NAME':
+        print(a['archive_download_url'])
+        break
+")
+          
+          echo "Artifact download URL: $ARTIFACT_URL"
+          
+          curl -s -L \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -o "${{ inputs.output_file }}" \
+            "$ARTIFACT_URL"
+          
+          echo "Downloaded file:"
+          ls -lh "${{ inputs.output_file }}"
